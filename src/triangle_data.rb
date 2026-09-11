@@ -1,22 +1,27 @@
 class Tri_data 
   
-  def initialize(pa, pb, pc, ta, tb, tc)
+  def initialize(pos, normal, uv)
     @vertexPos = Array.new(3) {Array.new(3, 0.0)}
-    @vertexPos[0] = pa
-    @vertexPos[1] = pb
-    @vertexPos[2] = pc
+    @vertexPos = pos[0, 3]
+
+    @vertexNormal = Array.new(3) {Array.new(3, 0.0)}
+    @vertexNormal = normal
 
     @vertexUV = Array.new(3) {Array.new(2, 0.0)}
-    @vertexUV[0] = ta
-    @vertexUV[1] = tb
-    @vertexUV[2] = tc
+    @vertexUV = uv
+
   end
 
   def v
     return @vertexPos
   end
 
+  def vn
+    return @vertexNormal
+  end
+
   def vt
     return @vertexUV
   end
+
 end
