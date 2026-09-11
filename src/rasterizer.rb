@@ -56,9 +56,9 @@ class Rasterizer
       for y in min_y.to_i..max_y.to_i
         pixel = [x, y]
 
-        w1 = edge(v1, v2, pixel)
-        w2 = edge(v2, v3, pixel)
-        w3 = edge(v3, v1, pixel)
+        w1 = edge(v2, v3, pixel)
+        w2 = edge(v3, v1, pixel)
+        w3 = edge(v1, v2, pixel)
 
         if w1 <= 0 && w2 <= 0 && w3 <= 0
 
@@ -71,12 +71,11 @@ class Rasterizer
           if(maps[1][y * height + x] > depth)
             maps[1][y * height + x] = depth
             for j in 0..2
-              maps[0][y * height * 3 + x * 3 + j] = color[j]
+              maps[0][y * height * 3 + x * 3 + j] = depth * 255
             end
           end
         end
       end
     end
-    
   end
 end
