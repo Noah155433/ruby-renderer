@@ -1,6 +1,11 @@
 require './src/matrix.rb'
 
 class Rasterizer
+
+  def self.is_right(a, b, p)
+    return (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]) <= 0
+  end
+
   def self.draw_tri(tri_data, maps, width, height)
 
     n = 0.1
@@ -38,57 +43,23 @@ class Rasterizer
       vert[1] = ((vert[1] + 1) / 2) * height
     end
 
-    if (v2[0] < v1[0])
-      temp = v1
-      v1 = v2
-      v2 = temp
-    end
+    min_x = [v1[0], v2[0], v3[0]].min.to_i
+    max_x = [v1[0], v2[0], v3[0]].max.to_i
+    min_y = [v1[1], v2[1], v3[1]].min.to_i
+    max_y = [v1[1], v2[1], v3[1]].max.to_i
 
-    if (v3[0] < v2[0])
-      temp = v2
-      v2 = v3
-      v3 = temp
-    end
+    color = rand(255)
 
-    if (v2[0] < v1[0])
-      temp = v1
-      v1 = v2
-      v2 = temp
-    end
-
-    if (v1[0] - v3[0] != 0)
-      if(v1[0] - v2[0] != 0)
-        k1 = (v1[1] - v2[1]) / (v1[0] - v2[0])
-        m1 = v1[1] - k1 * v1[0]
-      end
-      if(v2[0] - v3[0] != 0)
-        k2 = (v2[1] - v3[1]) / (v2[0] - v3[0])
-        m2 = v2[1] - k2 * v2[0]
-      end
-      k3 = (v1[1] - v3[1]) / (v1[0] - v3[0])
-      m3 = v3[1] - k3 * v3[0]
-
-      if(v1[0] - v2[0] != 0)
-        for x in v1[0].to_i..v2[0].to_i
-          for y in [k1*x+m1, k3*x+m3].min.to_i..[k1*x+m1, k3*x+m3].max.to_i
-            colors = [x / (width / 255).to_f, y / (height / 255).to_f, 0]
-            for i in 0..2
-              maps[0][y * height * 3 + x * 3 + i] = 255
-            end
-          end
-        end
-      end
-      
-      if(v2[0] - v3[0] != 0)
-        for x in v2[0].to_i..v3[0].to_i
-          for y in [k2*x+m2, k3*x+m3].min.to_i..[k2*x+m2, k3*x+m3].max.to_i
-            colors = [x / (width / 255).to_f, y / (height / 255).to_f, 0]
-            for i in 0..2
-              maps[0][y * height * 3 + x * 3 + i] = 255
-            end
+    for x in min_x..max_x
+      for y in min_y..max_y
+        pixel = [x, y]
+        if is_right(v1, v2, pixel) && is_right(v2, v3, pixel) && is_right(v3, v1, pixel)
+          for j in 0..2
+            maps[0][y * height * 3 + x * 3 + j] = color
           end
         end
       end
     end
+    
   end
 end
