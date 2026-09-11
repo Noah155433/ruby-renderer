@@ -36,7 +36,7 @@ class Obj
                 indices[j] = indices[j].to_i - 1
             end
 
-            tri_data1 = Tri_data.new(@v[indices[0]], @v[indices[1]], @v[indices[2]])
+            tri_data1 = Tri_data.new(@v[indices[2]], @v[indices[1]], @v[indices[0]])
             
             Rasterizer.draw_tri(tri_data1, maps, 512, 512)
             
@@ -46,7 +46,7 @@ class Obj
                     indices[j] = i[indice_order[j] - 1].split("/")[0]
                     indices[j] = indices[j].to_i - 1
                 end
-                tri_data2 = Tri_data.new(@v[indices[0]], @v[indices[1]], @v[indices[2]])
+                tri_data2 = Tri_data.new(@v[indices[2]], @v[indices[1]], @v[indices[0]])
                 Rasterizer.draw_tri(tri_data2, maps, 512, 512)
             end
             

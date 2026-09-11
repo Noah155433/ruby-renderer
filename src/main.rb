@@ -5,7 +5,7 @@ width = 512
 height = 512
 
 color_map = Array.new(width*height*3) {0}
-depth_map = Array.new(width*height) {0}
+depth_map = Array.new(width*height) {255}
 
 maps = [color_map, depth_map]
 
