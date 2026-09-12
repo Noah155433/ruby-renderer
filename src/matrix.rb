@@ -1,4 +1,7 @@
+require './src/vector.rb'
+
 class Matrix
+
   def initialize(c)
     @matrix = c
   end
@@ -24,21 +27,21 @@ class Matrix
     return @matrix
   end
 
-  def dot_vector(vector)
+  def mul_vector(vector)
     result = Array.new(4, 0.0)
-    vector[3] = 1
+    vec = [vector.x, vector.y, vector.z, 1]
     for i in 0..3
       sum = 0
       for j in 0..3
-        sum += @matrix[i][j] * vector[j]
+        sum += @matrix[i][j] * vec[j]
       end
       result[i] = sum
     end
     
-    return result
+    return Vec3.new(result[0], result[1], result[2]), result[3]
   end
 
-  def dot_matrix!(matrix)
+  def mul_matrix(matrix)
     result = Array.new(4) {Array.new(4) {0}}
     matrix_array = matrix.get_array
     for i in 0..3
@@ -50,7 +53,7 @@ class Matrix
         result[i][j] = sum
       end
     end
-    @matrix = result
+    return Matrix.new(result)
   end
 end
 

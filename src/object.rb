@@ -3,9 +3,9 @@ require './src/rasterizer.rb'
 require './src/img.rb'
 
 class Obj
-  def initialize(filepath)
-    
-    @texture = [0, 0]
+  def initialize(filepath, rasterizer)
+
+    @rasterizer = rasterizer
 
     v_count = 0
     vn_count = 0
@@ -24,21 +24,21 @@ class Obj
         for i in 0..2
           line[i] = line[i].to_f
         end
-        @v[v_count] = line
+        @v[v_count] = Vec3.new(line[0], line[1], line[2])
         v_count += 1
       elsif line[0] == "vn"
         line.shift
         for i in 0..2
           line [i] = line[i].to_f
         end
-        @vn[vn_count] = line
+        @vn[vn_count] = Vec3.new(line[0], line[1], line[2])
         vn_count += 1
       elsif line[0] == "vt"
         line.shift
         for i in 0..1
           line[i] = line[i].to_f
         end
-        @vt[vt_count] = line
+        @vt[vt_count] = Vec3.new(line[0], line[1])
         vt_count += 1
       elsif line[0] == "f"
         line.shift
@@ -48,11 +48,15 @@ class Obj
     end
   end
 
-  def set_texture(filepath)
+  def set_texture(filepath, tex_size)
     @texture = Img.get_rgb_array(filepath)
+    @tex_size = tex_size
   end
 
-  def draw(maps)
+  def draw()
+
+    @rasterizer.set_texture(@texture, @tex_size)
+
     for i in @f
       v_index = Array.new(4)
       vn_index = Array.new(4)
@@ -82,7 +86,7 @@ class Obj
         ]
         )
       
-      Rasterizer.draw_tri(tri_data1, maps, 512, 512, @texture, [1024, 1024])
+      @rasterizer.draw_tri(tri_data1)
       
       if i.length == 4
 
@@ -116,7 +120,7 @@ class Obj
         ]
         )
 
-        Rasterizer.draw_tri(tri_data2, maps, 512, 512, @texture, [1024, 1024])
+        @rasterizer.draw_tri(tri_data2)
       end
     end
   end

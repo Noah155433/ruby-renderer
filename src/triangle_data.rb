@@ -1,13 +1,15 @@
+require './src/vector.rb'
+
 class Tri_data 
   
   def initialize(pos, normal, uv)
-    @vertexPos = Array.new(3) {Array.new(3, 0.0)}
-    @vertexPos = pos[0, 3]
+    @vertexPos = Array.new(3) {Vec3.new}
+    @vertexPos = pos
 
-    @vertexNormal = Array.new(3) {Array.new(3, 0.0)}
+    @vertexNormal = Array.new(3) {Vec3.new}
     @vertexNormal = normal
 
-    @vertexUV = Array.new(3) {Array.new(2, 0.0)}
+    @vertexUV = Array.new(3) {Vec3.new}
     @vertexUV = uv
 
   end
