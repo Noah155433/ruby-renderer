@@ -9,8 +9,8 @@ depth_map = Array.new(width*height) {255}
 
 maps = [color_map, depth_map]
 
-suzanne = Obj.new('./src/suzanne.obj')
-suzanne.set_texture("./src/uv_grid.png")
+suzanne = Obj.new('./src/lantern.obj')
+suzanne.set_texture("./src/lantern_texture.png")
 suzanne.draw(maps)
 
 Tga_writer.write_tga(maps[0], width, height)

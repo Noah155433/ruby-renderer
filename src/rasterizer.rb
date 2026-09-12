@@ -8,14 +8,16 @@ class Rasterizer
 
   def self.draw_tri(tri_data, maps, width, height, texture, tex_data)
 
-    ambient_strength = 0.1
+    v_normal = tri_data.vn
+
+    ambient_strength = 0.0
     specular_strength = 0.5
 
-    light_pos = [1, -2, 0]
+    light_pos = [0, -0.7, 0.0]
 
-    camera_pos = [0, 0, -1]
+    camera_pos = [0, 0, 1]
 
-    color_format = [0, 1, 2]
+    color_format = [2, 1, 0]
 
     uv = tri_data.vt
 
@@ -26,7 +28,7 @@ class Rasterizer
 
     proj = Matrix.identity
 
-    fov = 90
+    fov = 40
 
     s = 1 / (Math.tan((fov / 2) * (Math::PI / 180)))
 
@@ -48,12 +50,10 @@ class Rasterizer
     v2 = v[1]
     v3 = v[2]
 
-    v1_world = v1
-    v2_world = v2
-    v3_world = v3
+    v1_world, v2_world, v3_world = [v1, v2, v3]
 
-    edge1 = v2[0,3].zip(v1[0,3]).map { |a, b| a - b}
-    edge2 = v3[0,3].zip(v1[0,3]).map { |a, b| a - b}
+    edge1 = v2_world[0,3].zip(v1_world[0,3]).map { |a, b| a - b}
+    edge2 = v3_world[0,3].zip(v1_world[0,3]).map { |a, b| a - b}
 
     normal = [
       edge1[1] * edge2[2] - edge1[2] * edge2[1],

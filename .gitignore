@@ -1,6 +1,10 @@
 *.gem
 *.rbc
 *.tga
+*.mtl 
+*.obj
+*.txt
+*.png
 /.config
 /coverage/
 /InstalledFiles
