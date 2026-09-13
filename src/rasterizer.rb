@@ -87,17 +87,17 @@ class Rasterizer
       edge1.x * edge2.y - edge1.y * edge2.x,
     ).normalize
 
-    v1, w1 = proj.mul_vector(v1)
-    v2, w2 = proj.mul_vector(v2)
-    v3, w3 = proj.mul_vector(v3)
+    v1, w1_vert = proj.mul_vector(v1)
+    v2, w2_vert = proj.mul_vector(v2)
+    v3, w3_vert = proj.mul_vector(v3)
 
     n_epsilon = 0.0001
 
-    return if w1 <= n_epsilon || w2 <= n_epsilon || w3 <= n_epsilon
+    return if w1_vert <= n_epsilon || w2_vert <= n_epsilon || w3_vert <= n_epsilon
     
-    v1 = v1 / w1
-    v2 = v2 / w2
-    v3 = v3 / w3
+    v1 = v1 / w1_vert
+    v2 = v2 / w2_vert
+    v3 = v3 / w3_vert
     
     [v1, v2, v3].each do |vert|
       vert.x = ((vert.x + 1) / 2.to_f) * @width
@@ -128,8 +128,14 @@ class Rasterizer
           
           depth = lam1 * v1.z + lam2 * v2.z + lam3 * v3.z
 
-          u = lam1 * uv1.x + lam2 * uv2.x + lam3 * uv3.x
-          v = lam1 * uv1.y + lam2 * uv2.y + lam3 * uv3.y
+          inv_w1 = 1.0 / w1_vert
+          inv_w2 = 1.0 / w2_vert
+          inv_w3 = 1.0 / w3_vert
+
+          inv_w = lam1 * inv_w1 + lam2 * inv_w2 + lam3 * inv_w3
+
+          u = (lam1 * uv1.x * inv_w1 + lam2 * uv2.x * inv_w2 + lam3 * uv3.x * inv_w3) / inv_w
+          v = (lam1 * uv1.y * inv_w1 + lam2 * uv2.y * inv_w2 + lam3 * uv3.y * inv_w3) / inv_w
           
           tx = (u * (@texture_size[0] - 1)).to_i
           ty = ([(1.0 - v), 0.0].max * (@texture_size[1] - 1)).to_i
