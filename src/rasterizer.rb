@@ -66,7 +66,7 @@ class Rasterizer
     v = tri_data.v
 
     view = Matrix.identity
-    view.set(0, 3, @camera_pos.x)
+    view.set(0, 3, -@camera_pos.x)
     view.set(1, 3, -@camera_pos.y)
     view.set(2, 3, @camera_pos.z)
 
@@ -158,10 +158,11 @@ class Rasterizer
 
           diff = [-normal.dot(lightDir), 0.0].max
 
-          if (x > 0 && y > 0) && @maps[1][y * @width + x] > depth
+          if (x > 0 && x < @width && y > 0 && y < @height) && @maps[1][y * @width + x] > depth
             @maps[1][y * @width + x] = depth
             for j in 0..2
               value = @texture[ty * 1024 * 3 + tx * 3 + j] * (@ambient_strength + diff + specular)
+              #value = depth * 150
               @maps[0][(@height - y).to_i * @width * 3 + x * 3 + j] = value.clamp(0, 255).to_i
             end
           end

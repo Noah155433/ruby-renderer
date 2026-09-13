@@ -5,6 +5,7 @@
 *.obj
 *.txt
 *.png
+*.jpg
 /.config
 /coverage/
 /InstalledFiles
