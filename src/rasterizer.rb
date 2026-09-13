@@ -45,8 +45,6 @@ class Rasterizer
 
   def draw_tri(tri_data)
 
-    color_format = [2, 1, 0]
-
     uv = tri_data.vt
 
     uv1, uv2, uv3 = uv
@@ -68,9 +66,9 @@ class Rasterizer
     v = tri_data.v
 
     view = Matrix.identity
-    view.set(0, 3, -@camera_pos.x)
+    view.set(0, 3, @camera_pos.x)
     view.set(1, 3, -@camera_pos.y)
-    view.set(2, 3, -@camera_pos.z)
+    view.set(2, 3, @camera_pos.z)
 
     proj = proj.mul_matrix(view)
 
@@ -134,7 +132,7 @@ class Rasterizer
           v = lam1 * uv1.y + lam2 * uv2.y + lam3 * uv3.y
           
           tx = (u * (@texture_size[0] - 1)).to_i
-          ty = ((1.0 - v) * (@texture_size[1] - 1)).to_i
+          ty = ([(1.0 - v), 0.0].max * (@texture_size[1] - 1)).to_i
 
           x_world = lam1 * v1_world.x + lam2 * v2_world.x + lam3 * v3_world.x
           y_world = lam1 * v1_world.y + lam2 * v2_world.y + lam3 * v3_world.y
@@ -154,10 +152,11 @@ class Rasterizer
 
           diff = [-normal.dot(lightDir), 0.0].max
 
-          if @maps[1][y * @width + x] > depth && (x > 0 && y > 0)
+          if (x > 0 && y > 0) && @maps[1][y * @width + x] > depth
             @maps[1][y * @width + x] = depth
             for j in 0..2
-              @maps[0][y * @width * 3 + x * 3 + color_format[j]] = @texture[ty * 1024 * 3 + tx * 3 + j] * (@ambient_strength + diff)
+              value = @texture[ty * 1024 * 3 + tx * 3 + j] * (@ambient_strength + diff + specular)
+              @maps[0][(@height - y).to_i * @width * 3 + x * 3 + j] = value.clamp(0, 255).to_i
             end
           end
         end

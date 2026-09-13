@@ -1,5 +1,5 @@
 require './src/object.rb'
-require './src/tga_writer.rb'
+require './src/png_writer.rb'
 require './src/vector.rb'
 
 width = 512
@@ -13,7 +13,7 @@ maps = [color_map, depth_map]
 rasterizer = Rasterizer.new(maps, 512, 512)
 rasterizer.set_ambient_strength(0.3)
 rasterizer.set_light_pos(Vec3.new(0, 0.4, 0.5))
-rasterizer.set_camera_pos(Vec3.new(0, 0.4, 0.3))
+rasterizer.set_camera_pos(Vec3.new(0, 0.4, -1.0))
 
 skybox = Obj.new('./skybox.obj', rasterizer)
 skybox.set_texture('./skybox_texture.png', [1024, 768])
@@ -23,4 +23,4 @@ suzanne = Obj.new('./plane.obj', rasterizer)
 suzanne.set_texture("./uv_grid.png", [1024, 1024])
 suzanne.draw
 
-Tga_writer.write_tga(maps[0], width, height)
+PNG_writer.write_png(maps[0], width, height)
