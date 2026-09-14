@@ -1,11 +1,17 @@
 require './src/triangle_data.rb'
 require './src/rasterizer.rb'
 require './src/img.rb'
+require './src/vector.rb'
+require './src/matrix.rb'
 
 class Obj
   def initialize(filepath, rasterizer)
 
     @rasterizer = rasterizer
+
+    @pos = Vec3.new(0, 0, 0)
+    @rotation = Vec3.new(0, 0, 0)
+    @scale = Vec3.new(1, 1, 1)
 
     v_count = 0
     vn_count = 0
@@ -48,12 +54,62 @@ class Obj
     end
   end
 
-  def set_texture(filepath, tex_size)
-    @texture = Img.get_rgb_array(filepath)
-    @tex_size = tex_size
+  def set_position(pos)
+    @pos = pos
+  end
+
+  def set_rotation(rot)
+    @rotation = rot
+  end
+
+  def set_scale(scale)
+    @scale = scale
+  end
+
+  def set_texture(filepath)
+    @texture, @tex_size = Img.get_rgb_array(filepath)
   end
 
   def draw()
+
+    translation_matrix = Matrix.identity
+    translation_matrix[3][0] = @pos.x
+    translation_matrix[3][1] = @pos.y
+    translation_matrix[3][2] = @pos.z
+
+    scale_matrix = Matrix.identity
+    scale_matrix[0][0] = @scale.x
+    scale_matrix[1][1] = @scale.y
+    scale_matrix[2][2] = @scale.z
+
+    rad_x = @rotation.x * Math::PI / 180.0
+    rad_y = @rotation.y * Math::PI / 180.0
+    rad_z = @rotation.z * Math::PI / 180.0
+
+    cx = Math.cos(rad_x)
+    sx = Math.sin(rad_x)
+    cy = Math.cos(rad_y)
+    sy = Math.sin(rad_y)
+    cz = Math.cos(rad_z)
+    sz = Math.sin(rad_z)
+
+    rotation_matrix = Matrix.identity
+
+    rotation_matrix[0][0] = cy * cz
+    rotation_matrix[0][1] = cy * sz
+    rotation_matrix[0][2] = -sy
+
+    rotation_matrix[1][0] = sx * sy * cz - cx * sz
+    rotation_matrix[1][1] = sx * sy * sz + cx * cz
+    rotation_matrix[1][2] = sx * cy
+
+    rotation_matrix[2][0] = cx * sy * cz + sx * sz
+    rotation_matrix[2][1] = cx * sy * sz - sx * cz
+    rotation_matrix[2][2] = cx * cy
+
+    transformation_matrix = translation_matrix * rotation_matrix * scale_matrix
+
+    @rasterizer.set_object_matrix(transformation_matrix)
 
     @rasterizer.set_texture(@texture, @tex_size)
 

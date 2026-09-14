@@ -8,6 +8,6 @@ class Img
     image = image.extract_band(0, n: 3)
     image = image.cast(:uchar)
 
-    return image.write_to_memory.bytes
+    return image.write_to_memory.bytes, image.size
   end
 end

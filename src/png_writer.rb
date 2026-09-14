@@ -7,5 +7,7 @@ class PNG_writer
     image = Vips::Image.new_from_memory(flat_bytes, width, height, 3, :uchar)
     image.write_to_file('./image.png')
 
+    p "wrote to file"
+
   end
 end
