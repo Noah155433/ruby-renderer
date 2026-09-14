@@ -46,14 +46,6 @@ class Matrix
       puts "Cannot perform multiplication between matrix and #{other.class}"
       abort
     end
-
-    if other.class == Vec3
-      return mul_vector(other)
-    elsif other.class == Matrix
-      return mul_matrix(other)
-    else
-      
-    end
   end
 
   def mul_vector(vector)
