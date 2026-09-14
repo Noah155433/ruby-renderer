@@ -150,7 +150,7 @@ class Rasterizer
 
           viewDir = (@camera_pos - xyz_world).normalize
 
-          reflectDir = (lightDir * -1).reflect(normal)
+          reflectDir = lightDir.reflect(normal)
 
           spec = [viewDir.dot(reflectDir), 0.0].max ** 64
 
