@@ -66,11 +66,11 @@ class Rasterizer
     v = tri_data.v
 
     view = Matrix.identity
-    view.set(0, 3, -@camera_pos.x)
-    view.set(1, 3, -@camera_pos.y)
-    view.set(2, 3, @camera_pos.z)
+    view[0][3] = -@camera_pos.x
+    view[1][3] = -@camera_pos.y
+    view[2][3] = @camera_pos.z
 
-    proj = proj.mul_matrix(view)
+    proj = proj * view
 
     v1 = v[0]
     v2 = v[1]
@@ -87,9 +87,9 @@ class Rasterizer
       edge1.x * edge2.y - edge1.y * edge2.x,
     ).normalize
 
-    v1, w1_vert = proj.mul_vector(v1)
-    v2, w2_vert = proj.mul_vector(v2)
-    v3, w3_vert = proj.mul_vector(v3)
+    v1, w1_vert = proj * v1
+    v2, w2_vert = proj * v2
+    v3, w3_vert = proj * v3
 
     n_epsilon = 0.0001
 
@@ -150,13 +150,13 @@ class Rasterizer
 
           viewDir = (@camera_pos - xyz_world).normalize
 
-          reflectDir = viewDir.reflect(normal)
-          reflectDir = reflectDir - viewDir
+          reflectDir = (lightDir * -1).reflect(normal)
 
           spec = [viewDir.dot(reflectDir), 0.0].max ** 64
+
           specular = spec * @specular_strength
 
-          diff = [-normal.dot(lightDir), 0.0].max
+          diff = [normal.dot(lightDir), 0.0].max
 
           if (x > 0 && x < @width && y > 0 && y < @height) && @maps[1][y * @width + x] > depth
             @maps[1][y * @width + x] = depth

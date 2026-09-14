@@ -15,6 +15,10 @@ class Matrix
   ])
   end
 
+  def [] (x)
+    @matrix[x]
+  end
+
   def set(i, j, n)
     @matrix[i][j] = n 
   end
@@ -25,6 +29,31 @@ class Matrix
 
   def get_array()
     return @matrix
+  end
+
+  def *(other)
+
+    case other
+    when Vec3
+      return mul_vector(other)
+    when Matrix
+      return mul_matrix(other)
+    when Float
+      return mul_scalar(other)
+    when Integer
+      return mul_scalar(other.to_f)
+    else
+      puts "Cannot perform multiplication between matrix and #{other.class}"
+      abort
+    end
+
+    if other.class == Vec3
+      return mul_vector(other)
+    elsif other.class == Matrix
+      return mul_matrix(other)
+    else
+      
+    end
   end
 
   def mul_vector(vector)
@@ -54,6 +83,10 @@ class Matrix
       end
     end
     return Matrix.new(result)
+  end
+
+  def mul_scalar(scalar)
+    return @matrix.map { |x| x.map { |y| y * 2}}
   end
 end
 
