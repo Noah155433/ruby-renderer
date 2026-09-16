@@ -7,6 +7,14 @@ class Vec3
     @z = z.to_f
   end
 
+  def [](index)
+    [@x, @y, @z][index]
+  end
+
+  def []=(index, val)
+    [@x, @y, @z][index] = val
+  end
+
   def x=(x)
     @x = x
   end

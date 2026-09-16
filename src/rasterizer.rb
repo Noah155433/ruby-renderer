@@ -1,5 +1,6 @@
 require './src/matrix.rb'
 require './src/vector.rb'
+require './src/light.rb'
 
 class Rasterizer
 
@@ -7,11 +8,7 @@ class Rasterizer
     @width = width
     @height = height
     @maps = maps
-    @light_pos = Vec3.new(0, 0, 0)
     @camera_pos = Vec3.new(0, 0, 0)
-    @world_ambient_strength = 0.7
-    @ambient_strength = 0.1
-    @specular_strength = 0.5
     @fov = 90
     @kc = 1
     @kl = 0.35
@@ -21,11 +18,16 @@ class Rasterizer
     update_proj_matrix
     update_view_matrix
 
-    
+    @lights = []
+
   end
 
   def set_object_matrix(matrix)
     @object_matrix = matrix
+  end
+
+  def add_light(light)
+    @lights.append(light)
   end
 
   def update_proj_matrix()
@@ -62,25 +64,13 @@ class Rasterizer
     @texture_size = size
   end
   
-  def set_light_pos(pos)
-    @light_pos = pos
-  end
-  
   def set_camera_pos(pos)
     @camera_pos = pos
     update_view_matrix
   end
   
-  def set_ambient_strength(strength)
-    @ambient_strength = strength
-  end
-  
   def set_world_ambient_strength(strength)
     @world_ambient_strength = strength
-  end
-  
-  def set_specular_strength(strength)
-    @specular_strength = strength
   end
   
   def area_of_triangle(a, b, p)
@@ -91,9 +81,12 @@ class Rasterizer
     
     #Get vertex UV coordinates from tri_data
     uv = tri_data.vt
+    vn = tri_data.vn
     
     #Split uv coordinates into their respective vertices
     uv1, uv2, uv3 = uv
+
+    vn1, vn2, vn3 = vn
     
     #Get vertex coordinates from tri_data
     v = tri_data.v
@@ -103,17 +96,6 @@ class Rasterizer
     
     #Assign vx_world to the vertex coordinate in world space, wx will be replaced when multiplication with the projection matrix is done but is needed to parse output
     (v1_world, x), (v2_world, x), (v3_world, x) = [ @object_matrix * v1, @object_matrix * v2, @object_matrix * v3]
-
-    #Get the vector of two of the edges of the triangle through vector subtraction
-    edge1 = v2_world - v1_world
-    edge2 = v3_world - v1_world
-
-    #Use edges to create the normal direction of the face
-    normal = Vec3.new(
-      edge1.y * edge2.z - edge1.z * edge2.y,
-      edge1.z * edge2.x - edge1.x * edge2.z,
-      edge1.x * edge2.y - edge1.y * edge2.x,
-    ).normalize
 
     # Transform world position into view space, then view space into clip space
     v1_view, w1_view = @view * v1_world
@@ -190,45 +172,59 @@ class Rasterizer
             u = (lam1 * uv1.x * inv_w1 + lam2 * uv2.x * inv_w2 + lam3 * uv3.x * inv_w3) / inv_w
             v = (lam1 * uv1.y * inv_w1 + lam2 * uv2.y * inv_w2 + lam3 * uv3.y * inv_w3) / inv_w
 
+            nx = (lam1 * vn1.x * inv_w1 + lam2 * vn2.x * inv_w2 + lam3 * vn3.x * inv_w3) / inv_w
+            ny = (lam1 * vn1.y * inv_w1 + lam2 * vn2.y * inv_w2 + lam3 * vn3.y * inv_w3) / inv_w
+            nz = (lam1 * vn1.z * inv_w1 + lam2 * vn2.z * inv_w2 + lam3 * vn3.z * inv_w3) / inv_w
+
+            normal = Vec3.new(nx, ny, nz).normalize
+
             #Turn the UV coordinates into index's for the Texture and flip y as vips loads the images upside down
             tx = (u * (@texture_size[0] - 1)).to_i
             ty = ([(1.0 - v), 0.0].max * (@texture_size[1] - 1)).to_i
 
-            #Same approach as the UV coordinates but used to get the fragments position in world space
-            x_world = (lam1 * v1_world.x * inv_w1 + lam2 * v2_world.x * inv_w2 + lam3 * v3_world.x * inv_w3) / inv_w
-            y_world = (lam1 * v1_world.y * inv_w1 + lam2 * v2_world.y * inv_w2 + lam3 * v3_world.y * inv_w3) / inv_w
-            z_world = (lam1 * v1_world.z * inv_w1 + lam2 * v2_world.z * inv_w2 + lam3 * v3_world.z * inv_w3) / inv_w
+            light_val = Vec3.new(0, 0, 0)
 
-            #Combine the x y and z world coordinates of the fragment
-            xyz_world = Vec3.new(x_world, y_world, z_world)
-            
-            #Get the direction from the fragment to the light source
-            lightDir = (@light_pos - xyz_world).normalize
+            for light in @lights
 
-            #Get the direction form the fragment to the camera position
-            viewDir = (@camera_pos - xyz_world).normalize
+              #Same approach as the UV coordinates but used to get the fragments position in world space
+              x_world = (lam1 * v1_world.x * inv_w1 + lam2 * v2_world.x * inv_w2 + lam3 * v3_world.x * inv_w3) / inv_w
+              y_world = (lam1 * v1_world.y * inv_w1 + lam2 * v2_world.y * inv_w2 + lam3 * v3_world.y * inv_w3) / inv_w
+              z_world = (lam1 * v1_world.z * inv_w1 + lam2 * v2_world.z * inv_w2 + lam3 * v3_world.z * inv_w3) / inv_w
 
-            #Get the direction of reflection between the direction of the light and the normal
-            reflectDir = lightDir.reflect(normal)
+              #Combine the x y and z world coordinates of the fragment
+              xyz_world = Vec3.new(x_world, y_world, z_world)
+              
+              #Get the direction from the fragment to the light source
+              lightDir = (light.pos - xyz_world).normalize
 
-            #Get the specular direction by dot multiplying the direction from the fragment to the camera and the reflected direction of light
-            spec = [viewDir.dot(reflectDir), 0.0].max ** 64
+              #Get the direction form the fragment to the camera position
+              viewDir = (@camera_pos - xyz_world).normalize
 
-            #Multiply the specular by the specular strength
-            specular = spec * @specular_strength
+              #Get the direction of reflection between the direction of the light and the normal
+              reflectDir = lightDir.reflect(normal)
 
-            #Get the diffuse lighting by dot multiplying the direction of the light from the fragment with the normal of the surface
-            diff = [normal.dot(lightDir), 0.0].max
+              #Get the specular direction by dot multiplying the direction from the fragment to the camera and the reflected direction of light
+              spec = [viewDir.dot(reflectDir), 0.0].max ** 64
 
-            #Get the distance from the fragment to the light source
-            distance = (@light_pos - xyz_world).length
-            #Get the attenuation (strength as a function of distace) of the light
-            attenuation = 1 / (@kc + @kl * distance + @kq * (distance**2))
+              #Multiply the specular by the specular strength
+              specular = spec * light.specular_strength
 
-            #Multiply all three types of light with the attenuation
-            ambient = @ambient_strength * attenuation
-            diff *= attenuation
-            specular *= attenuation
+              #Get the diffuse lighting by dot multiplying the direction of the light from the fragment with the normal of the surface
+              diff = [normal.dot(lightDir), 0.0].max * light.diffuse_strength
+
+              #Get the distance from the fragment to the light source
+              distance = (light.pos - xyz_world).length
+              #Get the attenuation (strength as a function of distace) of the light
+              attenuation = 1 / (@kc + @kl * distance + @kq * (distance**2))
+
+              #Multiply all three types of light with the attenuation
+              ambient = light.ambient_strength * attenuation
+              diff *= attenuation
+              specular *= attenuation
+
+              light_val = light_val + (light.color * (ambient + diff + specular))
+
+            end
 
             #Update the depth buffer
             @maps[1][y * @width + x] = depth
@@ -236,7 +232,7 @@ class Rasterizer
             #Draw the color of the texture into the color buffer
             for j in 0..2
               #Get the color color of the texture at the UV index and multiply it with the different types of light
-              value = @texture[ty * @texture_size[0] * 3 + tx * 3 + j] * (ambient + diff + specular)
+              value = @texture[ty * @texture_size[0] * 3 + tx * 3 + j] * light_val[j]
               #Draw to the color buffer
               @maps[0][(@height - y).to_i * @width * 3 + x * 3 + j] = value.clamp(0, 255).to_i
             end
